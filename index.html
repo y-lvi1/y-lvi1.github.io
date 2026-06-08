@@ -2,65 +2,73 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dados da criança</title>
     <script src="https://www.gstatic.com/firebasejs/10.0.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.0.0/firebase-firestore-compat.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; text-align: center; background-color: #f4f4f9; }
+        .card { border: 1px solid #ddd; padding: 20px; border-radius: 12px; max-width: 400px; margin: 20px auto; background: white; box-shadow: 0 4px 8px rgba(0,0,0,0.1); text-align: left; }
+        h2 { text-align: center; color: #333; margin-top: 0; }
+        p { font-size: 16px; color: #555; line-height: 1.5; border-bottom: 1px solid #eee; padding-bottom: 8px; }
+        strong { color: #222; }
+    </style>
 </head>
 <body>
 
-   <div id="conteudo" style="display:none;">
-    <h2 id="nome-crianca">Nome da Criança</h2>
-    <p><strong>Idade:</strong> <span id="idade-crianca"></span> anos</p>
-    <p><strong>Mãe:</strong> <span id="nome-mae"></span></p>
-    <p><strong>Pai:</strong> <span id="nome-pai"></span></p>
-    <p><strong>Contacto de Emergência:</strong> <span id="telefone-contato"></span></p>
-</div>
+    <div id="conteudo" class="card" style="display:none;">
+        <h2 id="nome-crianca">Carregando...</h2>
+        <p><strong>Idade:</strong> <span id="idade-crianca"></span> anos</p>
+        <p><strong>Mãe:</strong> <span id="nome-mae"></span></p>
+        <p><strong>Pai:</strong> <span id="nome-pai"></span></p>
+        <p><strong>Contato de Emergência:</strong> <span id="telefone-contato"></span></p>
+    </div>
 
     <script>
-      const firebaseConfig = {
-    apiKey: "AIzaSyDwNL50EZskvmuVnXn82sbX4RNCqSlMsR8",
-    authDomain: "registro-pulseira-infantil.firebaseapp.com",
-    projectId: "registro-pulseira-infantil",
-    storageBucket: "registro-pulseira-infantil.firebasestorage.app",
-    messagingSenderId: "999050142406",
-    appId: "1:999050142406:web:a662eee5b930215601edc7",
-    measurementId: "G-MV1222GXXM"
-  };
-        // Inicializa o Firebase no site
+        // Suas configurações do Firebase salvas anteriormente
+        const firebaseConfig = {
+            apiKey: "AIzaSyDwNL5OEZskvmuVnXn82sbX4RNCqSlMsR8",
+            authDomain: "registro-pulseira-infantil.firebaseapp.com",
+            projectId: "registro-pulseira-infantil",
+            storageBucket: "registro-pulseira-infantil.firebasestorage.app",
+            messagingSenderId: "999050142406",
+            appId: "1:999050142406:web:a662eee5b930215601edc7",
+            measurementId: "G-MV122GXXM"
+        };
+        
+        // Inicializa o Firebase
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
 
-        // Pega o ID da URL (?id=AbC123xyz)
+        // Pega o ID da URL (?id=...)
         const urlParams = new URLSearchParams(window.location.search);
         const idBuscado = urlParams.get('id');
-      
-// Busca o documento específico no banco de dados (Atenção ao "R" maiúsculo)
-    db.collection("Registros").doc(idBuscado).get().then((doc) => {
-        if (doc.exists) {
-            const dados = doc.data();
-            
-            // Liga os dados do Firebase aos elementos do HTML (Respeitando maiúsculas/minúsculas do seu Firebase)
-            document.getElementById('nome-crianca').innerText = dados.Nome || "Não informado";
-            document.getElementById('idade-crianca').innerText = dados.Idade !== undefined ? dados.Idade : "Não informada";
-            document.getElementById('nome-mae').innerText = dados.Mãe || "Não informado";
-            document.getElementById('nome-pai').innerText = dados.Pai || "Não informado";
-            
-            // Como o campo tem espaços e dois pontos, usamos esta sintaxe com parênteses retos:
-            document.getElementById('telefone-contato').innerText = dados['Telefone para contato:'] || "Não informado";
-            
-            // Mostra o bloco com as informações na tela
-            document.getElementById('conteudo').style.display = 'block';
+
+        if (idBuscado) {
+            // Busca o documento na coleção "Registros"
+            db.collection("Registros").doc(idBuscado).get().then((doc) => {
+                if (doc.exists) {
+                    const dados = doc.data();
+                    
+                    // Preenche os campos do HTML cuidando com maiúsculas/minúsculas
+                    document.getElementById('nome-crianca').innerText = dados.Nome || "Não informado";
+                    document.getElementById('idade-crianca').innerText = dados.Idade !== undefined ? dados.Idade : "Não informada";
+                    document.getElementById('nome-mae').innerText = dados.Mãe || "Não informado";
+                    document.getElementById('nome-pai').innerText = dados.Pai || "Não informado";
+                    document.getElementById('telefone-contato').innerText = dados['Telefone para contato:'] || "Não informado";
+                    
+                    // Mostra o card na tela
+                    document.getElementById('conteudo').style.display = 'block';
+                } else {
+                    alert("Pulseira ou registro não encontrado no sistema!");
+                }
+            }).catch((error) => {
+                console.error("Erro ao conectar ao Firebase:", error);
+                alert("Erro ao buscar dados do servidor.");
+            });
         } else {
-            // Caso o ID digitado/escanado não exista no banco
-            alert("Aviso: Pulseira ou registo não encontrado!");
+            alert("Nenhum ID de pulseira foi passado na URL!");
         }
-    }).catch((error) => {
-        console.error("Erro ao buscar dados:", error);
-    });
-} else {
-    alert("Nenhum ID de pulseira foi fornecido na URL!");
-}
-      
     </script>
 </body>
 </html>
