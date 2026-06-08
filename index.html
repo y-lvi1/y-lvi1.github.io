@@ -1,1 +1,66 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Visualizador Firebase</title>
+    <script src="https://www.gstatic.com/firebasejs/10.0.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.0.0/firebase-firestore-compat.js"></script>
+</head>
+<body>
 
+   <div id="conteudo" style="display:none;">
+    <h2 id="nome-crianca">Nome da Criança</h2>
+    <p><strong>Idade:</strong> <span id="idade-crianca"></span> anos</p>
+    <p><strong>Mãe:</strong> <span id="nome-mae"></span></p>
+    <p><strong>Pai:</strong> <span id="nome-pai"></span></p>
+    <p><strong>Contacto de Emergência:</strong> <span id="telefone-contato"></span></p>
+</div>
+
+    <script>
+      const firebaseConfig = {
+    apiKey: "AIzaSyDwNL50EZskvmuVnXn82sbX4RNCqSlMsR8",
+    authDomain: "registro-pulseira-infantil.firebaseapp.com",
+    projectId: "registro-pulseira-infantil",
+    storageBucket: "registro-pulseira-infantil.firebasestorage.app",
+    messagingSenderId: "999050142406",
+    appId: "1:999050142406:web:a662eee5b930215601edc7",
+    measurementId: "G-MV1222GXXM"
+  };
+        // Inicializa o Firebase no site
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        // Pega o ID da URL (?id=AbC123xyz)
+        const urlParams = new URLSearchParams(window.location.search);
+        const idBuscado = urlParams.get('id');
+      
+// Busca o documento específico no banco de dados (Atenção ao "R" maiúsculo)
+    db.collection("Registros").doc(idBuscado).get().then((doc) => {
+        if (doc.exists) {
+            const dados = doc.data();
+            
+            // Liga os dados do Firebase aos elementos do HTML (Respeitando maiúsculas/minúsculas do seu Firebase)
+            document.getElementById('nome-crianca').innerText = dados.Nome || "Não informado";
+            document.getElementById('idade-crianca').innerText = dados.Idade !== undefined ? dados.Idade : "Não informada";
+            document.getElementById('nome-mae').innerText = dados.Mãe || "Não informado";
+            document.getElementById('nome-pai').innerText = dados.Pai || "Não informado";
+            
+            // Como o campo tem espaços e dois pontos, usamos esta sintaxe com parênteses retos:
+            document.getElementById('telefone-contato').innerText = dados['Telefone para contato:'] || "Não informado";
+            
+            // Mostra o bloco com as informações na tela
+            document.getElementById('conteudo').style.display = 'block';
+        } else {
+            // Caso o ID digitado/escanado não exista no banco
+            alert("Aviso: Pulseira ou registo não encontrado!");
+        }
+    }).catch((error) => {
+        console.error("Erro ao buscar dados:", error);
+    });
+} else {
+    alert("Nenhum ID de pulseira foi fornecido na URL!");
+}
+      
+    </script>
+</body>
+</html>
