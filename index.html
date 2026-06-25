@@ -4,8 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Visualizador de dados da pulseira</title>
-    <script src="https://www.gstatic.com/firebasejs/10.0.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.0.0/firebase-firestore-compat.js"></script>
     <style>
         body { font-family: Arial, sans-serif; padding: 20px; text-align: center; background-color: #f4f4f9; }
         .card { border: 1px solid #ddd; padding: 20px; border-radius: 12px; max-width: 400px; margin: 20px auto; background: white; box-shadow: 0 4px 8px rgba(0,0,0,0.1); text-align: left; }
@@ -32,49 +30,52 @@
     </div>
 
     <script>
-        const firebaseConfig = {
-            apiKey: "AIzaSyDwNL5OEZskvmuVnXn82sbX4RNCqSlMsR8",
-            authDomain: "registro-pulseira-infantil.firebaseapp.com",
-            projectId: "registro-pulseira-infantil",
-            storageBucket: "registro-pulseira-infantil.firebasestorage.app",
-            messagingSenderId: "999050142406",
-            appId: "1:999050142406:web:a662eee5b930215601edc7",
-            measurementId: "G-MV122GXXM"
-        };
+        // URL onde o seu servidor externo está disponibilizando o JSON
+    // Substitua por sua URL real ou endpoint da API
+    const urlDaApi = 'https://seu-site-externo.com/api/rastreio';
+
+    async function buscarDadosDaPulseira() {
+        try {
+        // Faz a requisição GET para puxar o JSON
+            const response = await fetch(urlDaApi);
         
-        // Inicializa o Firebase
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.firestore();
+            if (response.ok) {
+                const dadosJson = await response.json();
+            
+            // 1. Torna o cartão visível (tira o display:none)
+                document.getElementById('conteudo').style.display = 'block';
 
-        // Pega o ID da URL (?id=...)
-        const urlParams = new URLSearchParams(window.location.search);
-        const idBuscado = urlParams.get('id');
+            // 2. Mapeia os dados do JSON recebido do Flutter para o seu HTML
+            // Usamos || "..." para colocar um texto padrão caso o dado venha vazio
+                document.getElementById('nome-pai').innerText = dadosJson.nome_pai || "Não informado";
+                document.getElementById('telefone-contato').innerText = dadosJson.telefone_contato || "Não informado";
+            
+            // 3. Como o app atual não manda dados da criança e da mãe, deixamos um aviso padrão
+                document.getElementById('nome-crianca').innerText = dadosJson.nome_crianca || "Não cadastrado no App";
+                document.getElementById('idade-crianca').innerText = dadosJson.idade_crianca || "--";
+                document.getElementById('nome-mae').innerText = dadosJson.nome_mae || "Não cadastrado no App";
 
-        if (idBuscado) {
-            // Busca o documento na coleção "Registros"
-            db.collection("Registros").doc(idBuscado).get().then((doc) => {
-                if (doc.exists) {
-                    const dados = doc.data();
-                    
-                    // Preenche os campos do HTML
-                    document.getElementById('nome-crianca').innerText = dados.Nome || "Não informado";
-                    document.getElementById('idade-crianca').innerText = dados.Idade !== undefined ? dados.Idade : "Não informada";
-                    document.getElementById('nome-mae').innerText = dados.Mãe || "Não informado";
-                    document.getElementById('nome-pai').innerText = dados.Pai || "Não informado";
-                    document.getElementById('telefone-contato').innerText = dados['Telefone para contato:'] || "Não informado";
-                    
-                    // Mostra o card na tela
-                    document.getElementById('conteudo').style.display = 'block';
+            // 4. BÔNUS: Feedback visual de segurança baseado na distância
+                const cardElement = document.getElementById('conteudo');
+                if (dadosJson.status === 0 || dadosJson.distancia_metros > 8.0) {
+                // Se desconectou ou passou de 8 metros, a borda fica vermelha piscante
+                    cardElement.style.border = "3px solid #d32f2f";
                 } else {
-                    alert("Pulseira ou registro não encontrado no sistema!");
+                // Seguro (borda verde)
+                    cardElement.style.border = "3px solid #4CAF50";
                 }
-            }).catch((error) => {
-                console.error("Erro ao conectar ao Firebase:", error);
-                alert("Erro ao buscar dados do servidor.");
-            });
-        } else {
-            alert("Nenhum ID de pulseira foi passado na URL!");
+            }
+        } catch (error) {
+            console.error("❌ Erro ao buscar os dados:", error);
         }
+}
+
+// Executa a busca assim que o site abre
+buscarDadosDaPulseira();
+
+// Inicia o "radar": busca atualizações a cada 3 segundos 
+// (Sincronizado perfeitamente com o Timer do seu BleController no Flutter)
+setInterval(buscarDadosDaPulseira, 3000);
     </script>
 </body>
 </html>
