@@ -50,8 +50,6 @@
             
             // 3. Como o app atual não manda dados da criança e da mãe, deixamos um aviso padrão
                 document.getElementById('nome-crianca').innerText = dadosJson.nome_crianca || "Não cadastrado no App";
-                document.getElementById('idade-crianca').innerText = dadosJson.idade_crianca || "--";
-                document.getElementById('nome-mae').innerText = dadosJson.nome_mae || "Não cadastrado no App";
 
             // 4. BÔNUS: Feedback visual de segurança baseado na distância
                 const cardElement = document.getElementById('conteudo');
